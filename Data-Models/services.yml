@@ -1,0 +1,16 @@
+#
+# Vlan service Definintion
+#
+# Data model
+# Dictioanry of Vlan services
+# Each vlan has:
+# - common parameters (Vlan ID, Name)
+# - dictionary of nodes
+
+services:
+  - Vlan201:
+    id: 201
+    name: Actros
+  - Vlan202:
+    id: 202
+    name: TRX

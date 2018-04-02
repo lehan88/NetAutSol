@@ -1,0 +1,21 @@
+---
+#Vlan configuration
+{% for vlan in services %}
+vlan {{ vlan.id }}
+name {{ vlan.name }}
+{% endfor %}
+
+interface Vxlan1
+vxlan source-interface Loopback100
+vxlan udp-port 4789
+{% for vlan in services %}
+vxlan vlan {{ vlan.id }} vni {{ 10000 + vlan.id }}
+{% endfor %}
+
+router bgp {{ asn }}
+{% for vlan in services %}
+   vlan {{ vlan.id }}
+      rd {{ rid }}:{{ 10000 + vlan.id }}
+      route-target both {{ 10000 + vlan.id }}:{{ 10000 + vlan.id }}
+      redistribute learned
+{% endfor %}

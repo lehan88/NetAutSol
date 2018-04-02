@@ -1,0 +1,8 @@
+
+---
+- hosts: leafs
+  gather_facts: no
+  vars_files: [ services.yml ]
+  tasks:
+  - name:   Create BGP evpn vlan configuration from services model
+    template: src=evpn-vlan.j2 dest=configs/{{ inventory_hostname }}.conf

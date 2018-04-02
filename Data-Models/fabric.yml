@@ -1,0 +1,63 @@
+#
+# Definintion of fabric
+#
+---
+fabric:
+  - {left: spine-1, left_ip: 10.0.0.0, left_port: Eth1/1,
+    right: leaf-1, right_ip: 10.0.0.1, right_port: Eth49/1}
+  - {left: spine-1, left_ip: 10.0.0.2, left_port: Eth2/1,
+    right: leaf-2, right_ip: 10.0.0.3, right_port: Eth49/1}
+  - {left: spine-2, left_ip: 10.0.0.64, left_port: Eth1/1,
+    right: leaf-1, right_ip: 10.0.0.65, right_port: Eth50/1}
+  - {left: spine-2, left_ip: 10.0.0.66, left_port: Eth2/1,
+    right: leaf-2, right_ip: 10.0.0.67, right_port: Eth50/1}
+
+evpn:
+  - {left: spine-1, left_as: '65000', left_ip: 10.20.191.101,
+     right: leaf-1, right_as: '65001', right_ip: 10.20.191.103}
+  - {left: spine-1, left_as: '65000', left_ip: 10.20.191.101,
+     right: leaf-2, right_as: '65002', right_ip: 10.20.191.104}
+  - {left: spine-2, left_as: '65000', left_ip: 10.20.191.102,
+     right: leaf-1, right_as: '65001', right_ip: 10.20.191.103}
+  - {left: spine-2, left_as: '65000', left_ip: 10.20.191.102,
+     right: leaf-2, right_as: '65002', right_ip: 10.20.191.104}
+
+asn:
+  65000:
+    members: [spine-1, spine-2]
+  65001:
+    members: [leaf-1]
+  65002:
+    members: [leaf-2]
+
+nodes:
+  - name: spine-1
+    mgmt: 10.20.0.1
+    rid:  10.20.191.101
+    Loopback0: 10.20.191.101
+    Loopback100: 10.20.100.1
+  - name: spine-2
+    mgmt: 10.20.0.2
+    rid:  10.20.191.102
+    Loopback0: 10.20.191.102
+    Loopback100: 10.20.100.2
+  - name: leaf-1
+    mgmt: 10.20.0.3
+    rid:  10.20.191.103
+    Loopback0: 10.20.191.102
+    Loopback100: 10.20.100.3
+  - name: leaf-2
+    mgmt: 10.20.0.4
+    rid:  10.20.191.104
+    Loopback0: 10.20.191.104
+    Loopback100: 10.20.100.4
+
+services:
+  - Vlan201:
+    id: 201
+    name: Actros
+    resides-on: [leaf-1, leaf-2]
+  - Vlan202:
+    id: 202
+    name: TRX
+    resides-on: [leaf-1]

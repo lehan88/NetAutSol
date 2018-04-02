@@ -1,0 +1,78 @@
+LEAF
+router bgp {{ asn }}
+   router-id {{ Loopback0 }}
+   maximum-paths 4
+   neighbor {{ peer_loopback }} remote-as {{ spine_as }}
+   neighbor {{ peer_loopback }} update-source Loopback0
+   neighbor {{ peer_loopback }} send-community extended
+   neighbor {{ peer_loopback }} maximum-routes 12000
+   neighbor 1.1.1.3 peer-group {{ peer_loopback }}
+   neighbor 1.1.1.4 peer-group {{ peer_loopback }}
+   !
+   address-family evpn
+   neighbor {{ peer_loopback }} activate
+   !
+   address-family ipv4
+   no neighbor {{ peer_loopback }} activate
+
+   address-family ipv6
+  no neighbor {{ peer_loopback }} activate
+
+SPINE
+  router bgp 65000
+     router-id {{ Loopback0 }}
+
+     neighbor LEAF_EVPN1 peer-group
+     neighbor LEAF_EVPN1 remote-as 65001
+     neighbor LEAF_EVPN1 next-hop-unchanged
+     neighbor LEAF_EVPN1 update-source Loopback0
+     neighbor LEAF_EVPN1 ebgp-multihop 5
+     neighbor LEAF_EVPN1 send-community extended
+     neighbor LEAF_EVPN1 maximum-routes 12000
+     neighbor {{ peer_loopback }} peer-group LEAF_EVPN
+     neighbor {{ peer_loopback }} remote-as {{peer_as}}
+     neighbor {{ peer_loopback }} peer-group LEAF_EVPN
+     neighbor {{ peer_loopback }} remote-as {{peer_as}}
+     !
+
+     address-family evpn
+      neighbor LEAF_EVPN1 activate
+      neighbor LEAF_EVPN2 active
+
+     !
+
+     address-family ipv4
+       no neighbor LEAF_EVPN1 activate
+       no neighbor LEAF_EVPN2 activate
+     !
+
+     address-family ipv6
+       no neighbor LEAF_EVPN1 activate
+       no neighbor LEAF_EVPN2 activate
+
+vlan 10
+!
+vlan 11
+
+!
+interface Loopback100
+   ip address {{ Loopback100 }}
+
+interface Vxlan1
+   vxlan source-interface Loopback100
+   vxlan udp-port 4789
+   vxlan vlan 10 vni 1010
+   vxlan vlan 11 vni 1011
+
+Router bgp 65001
+   Router-id 1.1.1.11
+   !
+   vlan 10
+      rd {{ Loopback0 }}:{{ vni }}
+      route-target both {{ vni }}:{{ vni }}
+      redistribute learned
+   !
+   vlan 11
+      rd {{ Loopback0 }}:{{ vni }}
+      route-target both {{ vni }}:{{ vni }}
+      redistribute learned

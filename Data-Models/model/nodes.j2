@@ -1,0 +1,52 @@
+#
+# Nodes in the network
+#
+{% macro internal_link(name,ip,cost) %}
+{{ name }}: { ip: {{ip}} }{% endmacro %}
+{% macro evpn_session(from,to,as,ip,ecnt) %}
+{% if from != to %}
+      - { rid: {{to}}, as: {{as}}, ip: "{{ip}}" }{% endif %}
+{% endmacro %}
+---
+
+nodes:
+{% for node in nodes %}
+
+  {{ node.name }}:
+    mgmt: {{ node.mgmt }}
+    rid:  {{ node.Loopback0 }}
+    Loopback0: {{ node.Loopback0 }}
+    {% if node.Loopback100 %}Loopback100: {{ node.Loopback100 }}
+    {%       endif %}
+{%   for k,v in asn|dictsort() %}
+{%     if node.name in v.members %}
+as:   {{ k }}
+{%       endif %}
+{%   endfor %}
+{%   set ecnt = 0 %}
+{%   for s in evpn %}
+{%     if s.left == node.name %}
+{%       if ecnt == 0 %}
+    evpn:
+{%       endif %}
+{{evpn_session(node.name,s.right,s.right_as,s.right_ip,ecnt)}}
+{%       set ecnt = ecnt + 1 %}
+{%     endif %}
+{%     if s.right == node.name %}
+{%       if ecnt == 0 %}
+    evpn:
+{%       endif %}
+{{evpn_session(node.name,s.left,s.left_as,s.left_ip,ecnt)}}
+{%       set ecnt = ecnt + 1 %}
+{%     endif %}
+{%   endfor %}
+
+    internal:
+{%   for link in fabric %}
+{%     if link.left == node.name %}
+      {{ internal_link(link.left_port,link.left_ip,link.cost|default('')) }}
+{%     elif link.right == node.name %}
+      {{ internal_link(link.right_port,link.right_ip, link.cost|default('')) }}
+{%     endif %}
+{%   endfor %}
+{% endfor %}
